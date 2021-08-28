@@ -2,7 +2,7 @@ import React, { Component } from "react";
 import BNS from "./contracts/BNS.json";
 import getWeb3 from "./getWeb3";
 import 'semantic-ui-css/semantic.min.css';
-import { Input, Divider, Button } from "semantic-ui-react";
+import { Input, Divider, Button, Menu, Label } from "semantic-ui-react";
 import "./App.css";
 
 class App extends Component {
@@ -12,7 +12,10 @@ class App extends Component {
     account: null,
     contract: null,
     registered: false,
-    username: ''
+    inputUsername: '',
+    username: '',
+    amount: '',
+    recipient: ''
   };
 
   componentDidMount = async () => {
@@ -53,13 +56,12 @@ class App extends Component {
 
     let registered = await contract.methods.isUserRegistered()
       .call({ from: account });
-
-    console.log("account =", account);
-    console.log("contract =", contract);
-    console.log("is User registered ? :", registered);
+    let username = await this.state.contract.methods.getUsername()
+      .call({ from: account });
 
     this.setState({
-      registered
+      registered,
+      username
     });
   };
 
@@ -67,10 +69,17 @@ class App extends Component {
     if (this.state.web3 !== null || this.state.web3 !== undefined) {
       await window.ethereum.on('accountsChanged', async (accounts) => {
         let registered = false;
+        let username;
         if (this.state.contract !== null) {
           registered = await this.state.contract.methods.isUserRegistered()
             .call({ from: accounts[0] });
-          this.setState({ registered });
+          username = await this.state.contract.methods.getUsername()
+            .call({ from: accounts[0] });
+
+          this.setState({
+            registered,
+            username
+          });
         }
 
         this.setState({
@@ -81,7 +90,9 @@ class App extends Component {
   }
 
   register = async () => {
-    const { account, contract, username } = this.state;
+    const { account, contract, inputUsername } = this.state;
+
+    let username = inputUsername;
 
     await contract.methods.register(username)
       .send({ from: account });
@@ -89,9 +100,25 @@ class App extends Component {
     let registered = await contract.methods.isUserRegistered()
       .call({ from: account });
 
+    let usernameFromContract = await contract.methods.getUsername()
+      .call({ from: account });
+
     this.setState({
-      registered
+      registered,
+      username: usernameFromContract
     });
+  }
+
+  sendETH = async () => {
+    const { web3, account, contract, amount, recipient } = this.state;
+
+    let ETHvalue = web3.utils.toWei(amount.toString());
+    await contract.methods.transferETH(recipient).send({ from: account, value: ETHvalue });
+
+    this.setState({
+      amount: '',
+      recipient: ''
+    })
   }
 
   render() {
@@ -100,7 +127,19 @@ class App extends Component {
     }
     return (
       <div className="App">
-        <h1>Welcome user!</h1>
+        <div className="header-name">
+          {
+            this.state.username !== '' ?
+              <Menu.Item>
+                <Label size='big' color='purple' horizontal>
+                  @{this.state.username}
+                </Label>
+              </Menu.Item>
+              :
+              ''
+          }
+        </div>
+        <h1>Welcome {this.state.username}!</h1>
         <h3>Let's send some ETH using the recipient username</h3>
         <br></br>
         <Divider />
@@ -109,20 +148,36 @@ class App extends Component {
           {
             this.state.registered ?
               <div className="register">
-                <h2>Send ETH to your friend</h2>
+                <h2>Send ETH to your contacts</h2>
+                <br></br>
+                <Input
+                  fluid
+                  size='large'
+                  placeholder='amount'
+                >
+                  <input
+                    value={this.state.amount}
+                    onChange={e => this.setState({ amount: e.target.value })}
+                  />
+                </Input>
                 <br></br>
                 <Input
                   fluid
                   size='large'
                   placeholder='username'
-                  onChange={e => this.setState({ username: e.target.value })}
-                />
+                >
+                  <input
+                    value={this.state.recipient}
+                    onChange={e => this.setState({ recipient: e.target.value })}
+                  />
+                </Input>
                 <br></br>
                 <Button
                   fluid
                   size='large'
                   color='teal'
                   content="Send"
+                  onClick={this.sendETH}
                 />
               </div>
               :
@@ -133,7 +188,7 @@ class App extends Component {
                   fluid
                   size='large'
                   placeholder='username'
-                  onChange={e => this.setState({ username: e.target.value })}
+                  onChange={e => this.setState({ inputUsername: e.target.value })}
                 />
                 <br></br>
                 <Button

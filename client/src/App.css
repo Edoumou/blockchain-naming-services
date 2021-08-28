@@ -1,5 +1,5 @@
 .App {
-  margin-top: 50px;
+  margin-top: 20px;
   text-align: center;
 }
 
@@ -30,4 +30,9 @@
   width: 30%;
   margin-left: 35%;
   margin-right: auto;
+}
+
+.header-name {
+  text-align: right;
+  margin-right: 10px;
 }

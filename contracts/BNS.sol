@@ -16,6 +16,11 @@ contract BNS {
                 address(0x0000000000000000000000000000000000000000),
             "already registered"
         );
+        // require the username not to be an empty string
+        require(
+            keccak256(bytes(_username)) != keccak256(bytes("")),
+            "Check the username"
+        );
 
         userNaming[_username] = msg.sender;
 
@@ -29,6 +34,7 @@ contract BNS {
                 address(0x0000000000000000000000000000000000000000),
             "not registered"
         );
+        require(msg.sender != userNaming[_username], "Check the recipient");
 
         (bool success, ) = userNaming[_username].call{value: msg.value}("");
         require(success);
