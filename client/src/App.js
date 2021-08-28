@@ -36,7 +36,7 @@ class App extends Component {
       // example of interacting with the contract's methods.
       this.setState({ web3, account, contract }, this.runExample);
 
-      this.getAccount();
+      await this.getAccount();
     } catch (error) {
       // Catch any errors for any of the above operations.
       alert(
