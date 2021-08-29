@@ -113,7 +113,9 @@ class App extends Component {
     const { web3, account, contract, amount, recipient } = this.state;
 
     let ETHvalue = web3.utils.toWei(amount.toString());
-    await contract.methods.transferETH(recipient).send({ from: account, value: ETHvalue });
+    let receipt = await contract.methods.transferETH(recipient).send({ from: account, value: ETHvalue });
+
+    console.log("Receipt: ", receipt);
 
     this.setState({
       amount: '',

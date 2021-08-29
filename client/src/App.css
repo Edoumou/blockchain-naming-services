@@ -28,7 +28,9 @@
 
 .register {
   width: 30%;
-  margin-left: 35%;
+  min-width: 300px;
+  max-width: 350px;
+  margin-left: auto;
   margin-right: auto;
 }
 
